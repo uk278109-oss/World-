@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07100C">
+<title>WORLD</title>
+<meta name="description" content="See What's Happening. Be Part of It.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="brand" data-screen="home" aria-label="WORLD home">
+      <span class="brand-mark">
+        <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5"/><path d="M4.8 13.2h22.4M4.8 18.8h22.4M16 4.5c3.1 3.2 4.6 7 4.6 11.5S19.1 24.3 16 27.5c-3.1-3.2-4.6-7-4.6-11.5S12.9 7.7 16 4.5Z"/></svg>
+  </span><span>WORLD</span>
+  </button>
+  <button class="icon-btn" id="notificationBtn" aria-label="Notifications">
+    <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 6.6-2.8 7.3-2.8 8.4h17.6C20.8 16.3 18 15.6 18 9Z"/><path d="M10 20h4"/></svg>
+  </button>
+</header>
+
+<main>
+<section class="screen active" id="screen-home">
+  <div class="hero"><span class="eyebrow">WORLD NOW</span><h1>See what's<br>happening.</h1><p>Discover live Moments around you and across the world.</p></div>
+  <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="searchInput" placeholder="Search Moments, people, places" autocomplete="off"></label>
+  <div class="chips" id="categoryChips">
+    <button class="chip active" data-category="All">All</button><button class="chip" data-category="Play">Play</button><button class="chip" data-category="Events">Events</button><button class="chip" data-category="Do">Do</button><button class="chip" data-category="People">People</button>
+  </div>
+  <div class="section-head"><h2>Live now</h2><button class="text-btn" data-screen="explore">Explore</button></div>
+  <div id="homeList" class="list"></div>
+</section>
+
+<section class="screen" id="screen-explore">
+  <div class="hero compact"><span class="eyebrow">DISCOVER</span><h1>Explore.</h1><p>Find Moments by area and category.</p></div>
+  <div class="location-bar"><span class="status-dot"></span><span id="locationText">Location is off</span><button id="locationBtn">Enable</button></div>
+  <div id="map" class="map" aria-label="WORLD map"><div class="map-empty">Live map activates when location and map service are connected.</div></div>
+  <div class="section-head"><h2>Latest Moments</h2></div>
+  <div id="exploreList" class="list"></div>
+</section>
+
+<section class="screen" id="screen-create">
+  <div class="hero compact"><span class="eyebrow">CREATE</span><h1>Start a Moment.</h1><p>Share something happening now. Exact location is never public by default.</p></div>
+  <form id="createForm" class="form">
+    <label>Title<input id="title" maxlength="80" required placeholder="What is happening?"></label>
+    <label>Description<textarea id="description" maxlength="500" required placeholder="Tell people what they can join..."></textarea></label>
+    <label>Category<select id="category"><option>Play</option><option>Events</option><option>Do</option><option>People</option></select></label>
+    <label>Visibility
+      <div class="visibility"><button type="button" class="vis active" data-value="nearby">Nearby</button><button type="button" class="vis" data-value="city">City</button><button type="button" class="vis" data-value="world">World</button></div>
+    </label>
+    <label>Duration<select id="duration"><option value="30">30 minutes</option><option value="120">2 hours</option><option value="1440">24 hours</option></select></label>
+    <label class="check"><input type="checkbox" id="useLocation"><span>Attach approximate location</span></label>
+    <button class="btn primary" type="submit">Publish Moment</button>
+    <p class="form-note">Your Moment expires automatically and can be reported by other users.</p>
+  </form>
+</section>
+
+<section class="screen" id="screen-activity">
+  <div class="hero compact"><span class="eyebrow">ACTIVITY</span><h1>Activity.</h1><p>Interactions with your Moments and people you follow.</p></div>
+  <div id="activityList" class="list"></div>
+</section>
+
+<section class="screen" id="screen-profile">
+  <div id="profileBox"></div>
+  <div class="section-head"><h2>Your Moments</h2></div>
+  <div id="profileList" class="list"></div>
+</section>
+
+<section class="screen" id="screen-settings">
+  <div class="hero compact"><span class="eyebrow">ACCOUNT</span><h1>Settings.</h1></div>
+  <div class="settings-card">
+    <div class="setting"><span class="setting-icon"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 6.6-2.8 7.3-2.8 8.4h17.6C20.8 16.3 18 15.6 18 9Z"/><path d="M10 20h4"/></svg></span><div><b>Notifications</b><small>Moment activity</small></div><button class="toggle on" data-toggle></button></div>
+    <div class="setting"><span class="setting-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg></span><div><b>Privacy</b><small>Approximate location by default</small></div><span class="chev">›</span></div>
+    <div class="setting"><span class="setting-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-2.5V20a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H6v-2.5h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v2.5h-.2a1.7 1.7 0 0 0-1.6 1Z"/></svg></span><div><b>Account</b><small id="accountStatus">Not signed in</small></div><button id="authBtn" class="small-btn">Sign in</button></div>
+    <div class="setting"><span class="setting-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span><div><b>About WORLD</b><small>See What's Happening. Be Part of It.</small></div></div>
+  </div>
+</section>
+</main>
+
+<nav class="bottom-nav" aria-label="Main navigation">
+<button class="nav active" data-screen="home"><svg viewBox="0 0 24 24"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg><span>Home</span></button>
+<button class="nav" data-screen="explore"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 5 5"/></svg><span>Explore</span></button>
+<button class="nav create-nav" data-screen="create"><span class="create-circle"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>Create</span></button>
+<button class="nav" data-screen="activity"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 6.6-2.8 7.3-2.8 8.4h17.6C20.8 16.3 18 15.6 18 9Z"/><path d="M10 20h4"/></svg><span>Activity</span></button>
+<button class="nav" data-screen="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"/></svg><span>Profile</span></button>
+</nav>
+
+<div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-close">×</button><div id="modalContent"></div></div></div>
+<div id="toast" class="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
