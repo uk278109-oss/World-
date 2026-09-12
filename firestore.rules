@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if owner(uid);
+      allow update: if owner(uid);
+      allow delete: if owner(uid);
+    }
+
+    match /moments/{momentId} {
+      allow read: if signedIn() &&
+        (resource.data.status == "active" || resource.data.ownerId == request.auth.uid);
+      allow create: if signedIn() &&
+        request.resource.data.ownerId == request.auth.uid &&
+        request.resource.data.title is string &&
+        request.resource.data.title.size() > 0 &&
+        request.resource.data.title.size() <= 80;
+      allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /moments/{momentId}/participants/{uid} {
+      allow read: if signedIn();
+      allow create, delete: if owner(uid);
+      allow update: if false;
+    }
+
+    match /moments/{momentId}/comments/{commentId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /reports/{reportId} {
+      allow create: if signedIn() && request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+  }
+}
