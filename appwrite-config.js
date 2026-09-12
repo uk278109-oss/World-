@@ -1,0 +1,1 @@
+export const APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1";export const APPWRITE_PROJECT_ID="PASTE_PROJECT_ID";export const DATABASE_ID="world";export const MOMENTS_COLLECTION_ID="moments";export const USERS_COLLECTION_ID="users";
