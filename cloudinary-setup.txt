@@ -1,1 +1,0 @@
-Cloudinary media layer for WORLD. Create an account and an unsigned upload preset for initial testing. Never expose the API Secret in frontend code. Production uploads should use secure server-side/Appwrite Function signing.
