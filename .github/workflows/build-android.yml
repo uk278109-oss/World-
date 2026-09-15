@@ -23,6 +23,12 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Set Flutter SDK path
+        run: echo "FLUTTER_ROOT=$FLUTTER_HOME" >> $GITHUB_ENV
+
+      - name: Flutter Version
+        run: flutter --version
+
       - name: Flutter Pub Get
         run: flutter pub get
 
