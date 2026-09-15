@@ -1,5 +1,26 @@
-export const APPWRITE_ENDPOINT = 'https://nyc.cloud.appwrite.io/v1'
-export const APPWRITE_PROJECT_ID = '6aa5175700159ea99cb8'
-export const WORLD_DATABASE_ID = 'WORLD_DATABASE_ID'
-export const MOMENT_TABLE_ID = 'Moment'
-export const PROFILES_TABLE_ID = 'profiles'
+import { Client, Account, Databases, Realtime } from 'appwrite'
+import {
+  APPWRITE_ENDPOINT,
+  APPWRITE_PROJECT_ID,
+  WORLD_DATABASE_ID,
+  MOMENT_TABLE_ID,
+  PROFILES_TABLE_ID
+} from '../config/appwrite'
+
+const client = new Client()
+  .setEndpoint(APPWRITE_ENDPOINT)
+  .setProject(APPWRITE_PROJECT_ID)
+
+export const account = new Account(client)
+export const databases = new Databases(client)
+export const realtime = new Realtime(client)
+
+export const config = {
+  databaseId: WORLD_DATABASE_ID,
+  momentTableId: MOMENT_TABLE_ID,
+  profilesTableId: PROFILES_TABLE_ID
+}
+
+export async function getCurrentUser() {
+  try { return await account.get() } catch { return null }
+      }
