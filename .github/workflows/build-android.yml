@@ -29,6 +29,9 @@ jobs:
       - name: Regenerate Android platform
         run: flutter create --platforms=android --org com.world .
 
+      - name: Remove generated sample test
+        run: rm -f test/widget_test.dart
+
       - name: Flutter Pub Get
         run: flutter pub get
 
