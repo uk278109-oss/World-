@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Realtime } from 'appwrite'
+import { Client, Account, Databases } from 'appwrite'
 import {
   APPWRITE_ENDPOINT,
   APPWRITE_PROJECT_ID,
