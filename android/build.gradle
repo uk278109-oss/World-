@@ -1,18 +1,20 @@
-android {
-    namespace = "com.world.app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "28.2.13676358"
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
     }
+}
 
-    defaultConfig {
-        applicationId = "com.world.app"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = 1
-        versionName = "1.0.0"
-    }
+rootProject.buildDir = "../build"
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
 }
