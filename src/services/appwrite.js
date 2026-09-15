@@ -13,7 +13,6 @@ const client = new Client()
 
 export const account = new Account(client)
 export const databases = new Databases(client)
-export const realtime = new Realtime(client)
 
 export const config = {
   databaseId: WORLD_DATABASE_ID,
