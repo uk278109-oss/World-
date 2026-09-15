@@ -1,0 +1,5 @@
+export const APPWRITE_ENDPOINT = 'https://nyc.cloud.appwrite.io/v1'
+export const APPWRITE_PROJECT_ID = '6aa5175700159ea99cb8'
+export const WORLD_DATABASE_ID = 'WORLD_DATABASE_ID'
+export const MOMENT_TABLE_ID = 'Moment'
+export const PROFILES_TABLE_ID = 'profiles'
