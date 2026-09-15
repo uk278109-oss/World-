@@ -32,6 +32,14 @@ jobs:
       - name: Remove generated sample test
         run: rm -f test/widget_test.dart
 
+      - name: Fix Android app version
+        run: |
+          sed -i 's/versionCode = flutterVersionCode.toInteger()/versionCode = 1/' android/app/build.gradle
+          sed -i 's/versionName = flutterVersionName/versionName = "1.0.0"/' android/app/build.gradle
+
+      - name: Remove conflicting Gradle Kotlin file
+        run: rm -f android/app/build.gradle.kts android/build.gradle.kts
+
       - name: Flutter Pub Get
         run: flutter pub get
 
