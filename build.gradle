@@ -1,0 +1,16 @@
+plugins {
+    id "com.android.application"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+android {
+    namespace = "com.world.app"
+    compileSdk = flutter.compileSdkVersion
+    defaultConfig {
+        applicationId = "com.world.app"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+    }
+}
+flutter { source = "../.." }
