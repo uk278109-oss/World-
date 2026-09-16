@@ -1,169 +1,31 @@
 import { useEffect, useState } from 'react'
-import {
-  Radio, Waves, Map, MessageCircle, UserRound, Sparkles, Search,
-  Bell, Navigation, Play, Users, Clock3, ArrowUpRight, Plus,
-  X, LogIn, Download
-} from 'lucide-react'
-import { getCurrentUser } from './services/appwrite'
+import { Radio, Waves, Map, MessageCircle, UserRound, Sparkles, Search, Bell, Navigation, Play, Users, Clock3, ArrowUpRight, Plus, X, LogIn, Download, Heart, Send, LogOut, RefreshCw } from 'lucide-react'
+import { getCurrentUser, ensureUserDocument, listMoments, createMoment, joinMoment, reactToMoment, addComment, login, register, logout } from './services/appwrite'
 
-const tabs = [
-  { id: 'now', label: 'NOW', icon: Radio },
-  { id: 'flow', label: 'FLOW', icon: Waves },
-  { id: 'scenes', label: 'SCENES', icon: Map },
-  { id: 'talk', label: 'TALK', icon: MessageCircle },
-  { id: 'space', label: 'SPACE', icon: UserRound }
-]
+const tabs=[{id:'now',label:'NOW',icon:Radio},{id:'flow',label:'FLOW',icon:Waves},{id:'scenes',label:'SCENES',icon:Map},{id:'talk',label:'TALK',icon:MessageCircle},{id:'space',label:'SPACE',icon:UserRound}]
+const fallback=[{type:'LIVE',title:'Your WORLD starts here',place:'Live moments will appear here',viewers:'0',age:'now',category:'do'}]
 
-const moments = [
-  { type:'LIVE', title:'Night market is moving', place:'Istanbul, Türkiye', viewers:'1.8K', age:'now', tag:'street', gradient:'g1' },
-  { type:'FLASH', title:'Sunset from the harbour', place:'Karachi, Pakistan', viewers:'842', age:'2m', tag:'sunset', gradient:'g2' },
-  { type:'DROP', title:'A quiet rooftop session', place:'Seoul, South Korea', viewers:'316', age:'6m', tag:'music', gradient:'g3' }
-]
-
-function App() {
-  const [tab, setTab] = useState('now')
-  const [sparkOpen, setSparkOpen] = useState(false)
-  const [install, setInstall] = useState(null)
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    getCurrentUser().then(setUser)
-    const handler = e => { e.preventDefault(); setInstall(e) }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
-
-  const installApp = async () => {
-    if (!install) return
-    install.prompt()
-    await install.userChoice
-    setInstall(null)
-  }
-
-  return (
-    <div className="app">
-      <header className="topbar">
-        <button className="brand" onClick={() => setTab('now')} aria-label="WORLD home">
-          <span className="brand-mark"><span /></span>
-          <span>WORLD</span>
-        </button>
-        <div className="top-actions">
-          {install && <button className="icon-btn install-btn" onClick={installApp}><Download size={17}/><span>Install</span></button>}
-          <button className="icon-btn"><Search size={20}/></button>
-          <button className="icon-btn notification"><Bell size={20}/><i /></button>
-        </div>
-      </header>
-
-      <main>
-        {tab === 'now' && <Now />}
-        {tab === 'flow' && <Flow />}
-        {tab === 'scenes' && <Scenes />}
-        {tab === 'talk' && <Talk user={user} />}
-        {tab === 'space' && <Space user={user} />}
-      </main>
-
-      <button className="spark" onClick={() => setSparkOpen(true)}>
-        <Sparkles size={21}/><span>SPARK</span>
-      </button>
-
-      <nav className="nav">
-        {tabs.map(({id,label,icon:Icon}) => (
-          <button key={id} className={tab === id ? 'nav-item active' : 'nav-item'} onClick={() => setTab(id)}>
-            <Icon size={20}/><span>{label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {sparkOpen && <Spark onClose={() => setSparkOpen(false)} />}
-    </div>
-  )
+function App(){
+ const [tab,setTab]=useState('now'),[sparkOpen,setSparkOpen]=useState(false),[install,setInstall]=useState(null),[user,setUser]=useState(null),[moments,setMoments]=useState([]),[authOpen,setAuthOpen]=useState(false),[loading,setLoading]=useState(true),[notice,setNotice]=useState('')
+ const load=async()=>{setLoading(true);try{const u=await getCurrentUser();setUser(u);if(u)await ensureUserDocument(u);const m=await listMoments();setMoments(m)}catch(e){setNotice(e?.message||'Appwrite connection failed')}finally{setLoading(false)}}
+ useEffect(()=>{load();const h=e=>{e.preventDefault();setInstall(e)};window.addEventListener('beforeinstallprompt',h);return()=>window.removeEventListener('beforeinstallprompt',h)},[])
+ const installApp=async()=>{if(!install)return;install.prompt();await install.userChoice;setInstall(null)}
+ const doLogout=async()=>{await logout();setUser(null);setNotice('Signed out')}
+ return <div className="app">
+  <header className="topbar"><button className="brand" onClick={()=>setTab('now')}><span className="brand-mark"><span/></span><span>WORLD</span></button><div className="top-actions">{install&&<button className="icon-btn install-btn" onClick={installApp}><Download size={17}/><span>Install</span></button>}<button className="icon-btn" onClick={load}><RefreshCw size={18}/></button><button className="icon-btn"><Search size={20}/></button><button className="icon-btn notification"><Bell size={20}/><i/></button></div></header>
+  {notice&&<div className="notice">{notice}<button onClick={()=>setNotice('')}><X size={15}/></button></div>}
+  <main>{tab==='now'&&<Now moments={moments} loading={loading} user={user} onAuth={()=>setAuthOpen(true)} onJoin={async id=>{if(!user)return setAuthOpen(true);try{await joinMoment(id,user.$id);setNotice('You are in — Be There.');await load()}catch(e){setNotice(e?.message||'Could not join')}}} onReact={async id=>{if(!user)return setAuthOpen(true);try{await reactToMoment(id,user.$id);setNotice('Reaction added');await load()}catch(e){setNotice(e?.message||'Could not react')}}} onComment={async(id,text)=>{if(!user)return setAuthOpen(true);try{await addComment(id,user.$id,text);setNotice('Comment added');await load()}catch(e){setNotice(e?.message||'Could not comment')}}}/>} {tab==='flow'&&<Flow moments={moments}/>} {tab==='scenes'&&<Scenes/>} {tab==='talk'&&<Talk user={user} onAuth={()=>setAuthOpen(true)}/>} {tab==='space'&&<Space user={user} onAuth={()=>setAuthOpen(true)} onLogout={doLogout}/>}</main>
+  <button className="spark" onClick={()=>user?setSparkOpen(true):setAuthOpen(true)}><Sparkles size={21}/><span>SPARK</span></button><nav className="nav">{tabs.map(({id,label,icon:Icon})=><button key={id} className={tab===id?'nav-item active':'nav-item'} onClick={()=>setTab(id)}><Icon size={20}/><span>{label}</span></button>)}</nav>
+  {sparkOpen&&<Spark user={user} onClose={()=>setSparkOpen(false)} onCreated={async()=>{setSparkOpen(false);await load();setNotice('Moment created')}}/>}{authOpen&&<Auth onClose={()=>setAuthOpen(false)} onDone={async u=>{setUser(u);setAuthOpen(false);await load()}}/>}
+ </div>
 }
-
-function SectionTitle({eyebrow, title, action}) {
-  return <div className="section-title">
-    <div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1></div>
-    {action && <button className="text-btn">{action}<ArrowUpRight size={15}/></button>}
-  </div>
-}
-
-function Now() {
-  return <div className="page">
-    <section className="hero">
-      <div className="hero-copy">
-        <span className="live-pill"><i/> HAPPENING NOW</span>
-        <h1>Be where<br/><em>life is.</em></h1>
-        <p>Discover moments unfolding around you — or anywhere in the WORLD.</p>
-        <button className="primary"><Navigation size={17}/> Explore nearby</button>
-      </div>
-      <div className="orbital"><div className="orbit o1"/><div className="orbit o2"/><div className="orbital-core"><Radio size={28}/></div></div>
-    </section>
-
-    <SectionTitle eyebrow="LIVE LAYER" title="Right now" action="See all"/>
-    <div className="moment-list">
-      {moments.map((m,i)=><MomentCard key={i} {...m}/>)}
-    </div>
-  </div>
-}
-
-function MomentCard({type,title,place,viewers,age,gradient}) {
-  return <article className={`moment ${gradient}`}>
-    <div className="moment-shade"/>
-    <div className="moment-top"><span className={type==='LIVE'?'live-pill':'type-pill'}>{type}</span><span className="age">{age}</span></div>
-    <div className="moment-bottom">
-      <div><h2>{title}</h2><p>{place}</p></div>
-      <div className="viewers"><Users size={14}/>{viewers}</div>
-    </div>
-    <button className="play"><Play size={18} fill="currentColor"/></button>
-  </article>
-}
-
-function Flow() {
-  return <div className="page">
-    <SectionTitle eyebrow="YOUR LAYER" title="Flow"/>
-    <div className="filters"><button className="filter active">For you</button><button className="filter">Following</button><button className="filter">Rising</button></div>
-    {moments.concat([{...moments[1], title:'Rain just started', place:'Tokyo, Japan', viewers:'1.2K', age:'11m', gradient:'g4'}]).map((m,i)=><MomentCard key={i} {...m}/>)}
-  </div>
-}
-
-function Scenes() {
-  return <div className="page">
-    <SectionTitle eyebrow="PLACES + EVENTS" title="Scenes"/>
-    <div className="scene-grid">
-      {['Karachi nights','Istanbul after dark','Seoul creative district','Lisbon street life'].map((x,i)=>
-        <div className={`scene-card sg${i+1}`} key={x}><div className="scene-content"><span>SCENE</span><h2>{x}</h2><p>{[18,42,27,13][i]} active now</p></div></div>
-      )}
-    </div>
-  </div>
-}
-
-function Talk({user}) {
-  return <div className="page">
-    <SectionTitle eyebrow="CONVERSATIONS" title="Talk"/>
-    <div className="talk-card"><div className="avatar">W</div><div><strong>Welcome to WORLD</strong><p>Public Scene chats and private conversations live here.</p></div></div>
-    <div className="empty"><MessageCircle size={34}/><h2>Find your people.</h2><p>Join a Scene to start talking. {user ? `Signed in as ${user.name || user.email}.` : 'Sign in when you are ready.'}</p><button className="secondary"><LogIn size={16}/> Continue</button></div>
-  </div>
-}
-
-function Space({user}) {
-  return <div className="page">
-    <SectionTitle eyebrow="YOUR WORLD" title="Space"/>
-    <div className="profile-card"><div className="profile-avatar">{user?.name?.[0] || 'W'}</div><div><h2>{user?.name || 'Your Space'}</h2><p>{user ? user.email : 'Create your identity on WORLD'}</p></div><button className="icon-btn"><ArrowUpRight size={18}/></button></div>
-    <div className="stats"><div><b>0</b><span>Connections</span></div><div><b>0</b><span>Scenes</span></div><div><b>0</b><span>Moments</span></div></div>
-  </div>
-}
-
-function Spark({onClose}) {
-  return <div className="modal-backdrop" onClick={onClose}>
-    <div className="spark-sheet" onClick={e=>e.stopPropagation()}>
-      <button className="close" onClick={onClose}><X size={20}/></button>
-      <span className="spark-icon"><Sparkles size={23}/></span>
-      <div className="eyebrow">CREATE A MOMENT</div>
-      <h2>What is happening?</h2>
-      <p>Share a short-lived signal with the WORLD.</p>
-      <div className="spark-types"><button><Radio size={19}/><b>NOW</b><span>Live activity</span></button><button><Play size={19}/><b>FLASH</b><span>5–30 seconds</span></button><button><Clock3 size={19}/><b>DROP</b><span>30 sec–5 min</span></button></div>
-      <button className="primary wide"><Plus size={17}/> Create moment</button>
-    </div>
-  </div>
-}
-
+function SectionTitle({eyebrow,title,action}){return <div className="section-title"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1></div>{action&&<button className="text-btn">{action}<ArrowUpRight size={15}/></button>}</div>}
+function Now({moments,loading,user,onAuth,onJoin,onReact,onComment}){return <div className="page"><section className="hero"><div className="hero-copy"><span className="live-pill"><i/> HAPPENING NOW</span><h1>Be where<br/><em>life is.</em></h1><p>Discover what is happening around you — or anywhere in the WORLD.</p><button className="primary" onClick={()=>document.getElementById('live-layer')?.scrollIntoView({behavior:'smooth'})}><Navigation size={17}/> Explore live</button></div><div className="orbital"><div className="orbit o1"/><div className="orbit o2"/><div className="orbital-core"><Radio size={28}/></div></div></section><div id="live-layer"><SectionTitle eyebrow="LIVE LAYER" title="Right now" action="Refresh"/><div className="moment-list">{loading?<div className="loading">Loading live moments…</div>:moments.length?moments.map(m=><MomentCard key={m.$id} m={m} user={user} onJoin={onJoin} onReact={onReact} onComment={onComment}/>):fallback.map((m,i)=><MomentCard key={i} m={m} empty/>)}</div></div>{!user&&<div className="cta"><strong>Want to be part of the live layer?</strong><span>Create, join and react to Moments.</span><button className="secondary" onClick={onAuth}><LogIn size={16}/> Sign in</button></div>}</div>}
+function MomentCard({m,user,onJoin,onReact,onComment,empty}){const [comment,setComment]=useState('');const title=m.title||'Untitled Moment';const place=m.place||m.visibility||'WORLD';return <article className={`moment ${empty?'empty-moment':''}`}><div className="moment-shade"/><div className="moment-top"><span className={m.type==='LIVE'||m.status==='active'?'live-pill':'type-pill'}>{m.type||m.category||'NOW'}</span><span className="age">{m.age||'live'}</span></div><div className="moment-bottom"><div><h2>{title}</h2><p>{place}</p><div className="card-actions"><button onClick={()=>!empty&&onJoin?.(m.$id)} disabled={empty}><Users size={14}/>{m.participantsCount||0} Join</button><button onClick={()=>!empty&&onReact?.(m.$id)} disabled={empty}><Heart size={14}/>{m.reactionsCount||0}</button></div>{!empty&&<div className="comment-box"><input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Say something…" onClick={e=>e.stopPropagation()}/><button onClick={()=>{if(comment.trim()){onComment?.(m.$id,comment.trim());setComment('')}}}><Send size={14}/></button></div>}</div></div><button className="play" onClick={()=>!empty&&onJoin?.(m.$id)} disabled={empty}><Play size={18} fill="currentColor"/></button></article>}
+function Flow({moments}){return <div className="page"><SectionTitle eyebrow="LIVE FEED" title="Flow"/><div className="filters"><button className="filter active">For you</button><button className="filter">Following</button><button className="filter">Rising</button></div>{moments.length?moments.map(m=><MomentCard key={m.$id} m={m}/>):<div className="empty"><Waves size={34}/><h2>Your Flow is waiting.</h2><p>As people create Moments, they will appear here.</p></div>}</div>}
+function Scenes(){return <div className="page"><SectionTitle eyebrow="PLACES + EVENTS" title="Scenes"/><div className="scene-grid">{['Karachi nights','Istanbul after dark','Seoul creative district','Lisbon street life'].map((x,i)=><div className={`scene-card sg${i+1}`} key={x}><div className="scene-content"><span>SCENE</span><h2>{x}</h2><p>Discover what is happening</p></div></div>)}</div></div>}
+function Talk({user,onAuth}){return <div className="page"><SectionTitle eyebrow="CONVERSATIONS" title="Talk"/><div className="talk-card"><div className="avatar">W</div><div><strong>Welcome to WORLD</strong><p>Join Moments and Scenes to start talking.</p></div></div><div className="empty"><MessageCircle size={34}/><h2>Find your people.</h2><p>{user?'You are signed in.':'Sign in to participate in conversations.'}</p>{!user&&<button className="secondary" onClick={onAuth}><LogIn size={16}/> Continue</button>}</div></div>}
+function Space({user,onAuth,onLogout}){return <div className="page"><SectionTitle eyebrow="YOUR WORLD" title="Space"/><div className="profile-card"><div className="profile-avatar">{user?.name?.[0]||'W'}</div><div><h2>{user?.name||'Your Space'}</h2><p>{user?.email||'Create your identity on WORLD'}</p></div>{user?<button className="icon-btn" onClick={onLogout}><LogOut size={18}/></button>:<button className="secondary" onClick={onAuth}><LogIn size={16}/> Sign in</button>}</div><div className="stats"><div><b>0</b><span>Connections</span></div><div><b>0</b><span>Scenes</span></div><div><b>0</b><span>Moments</span></div></div></div>}
+function Spark({user,onClose,onCreated}){const [title,setTitle]=useState(''),[description,setDescription]=useState(''),[category,setCategory]=useState('do'),[busy,setBusy]=useState(false);const submit=async()=>{if(!title.trim())return;setBusy(true);try{await createMoment({title:title.trim(),description:description.trim(),category,visibility:'nearby',expiresAt:new Date(Date.now()+2*60*60*1000).toISOString()},user.$id);await onCreated()}catch(e){alert(e?.message||'Could not create Moment')}finally{setBusy(false)}};return <div className="modal-backdrop" onClick={onClose}><div className="spark-sheet" onClick={e=>e.stopPropagation()}><button className="close" onClick={onClose}><X size={20}/></button><span className="spark-icon"><Sparkles size={23}/></span><div className="eyebrow">CREATE A MOMENT</div><h2>What is happening?</h2><p>Share a short-lived signal with the WORLD.</p><input className="field" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)}/><textarea className="field area" placeholder="What should people know?" value={description} onChange={e=>setDescription(e.target.value)}/><select className="field" value={category} onChange={e=>setCategory(e.target.value)}><option value="do">DO</option><option value="people">PEOPLE</option><option value="play">PLAY</option><option value="events">EVENTS</option></select><button className="primary wide" onClick={submit} disabled={busy}><Plus size={17}/>{busy?'Creating…':'Create moment'}</button></div></div>}
+function Auth({onClose,onDone}){const [mode,setMode]=useState('login'),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');const submit=async()=>{setBusy(true);setError('');try{const u=mode==='login'?await login(email,password):await register(email,password,name);await onDone(u)}catch(e){setError(e?.message||'Authentication failed')}finally{setBusy(false)}};return <div className="modal-backdrop" onClick={onClose}><div className="auth-sheet" onClick={e=>e.stopPropagation()}><button className="close" onClick={onClose}><X size={20}/></button><div className="eyebrow">WORLD ACCOUNT</div><h2>{mode==='login'?'Welcome back.':'Join WORLD.'}</h2><p>{mode==='login'?'Sign in to create and join live Moments.':'Create your identity and start being there.'}</p>{mode==='register'&&<input className="field" placeholder="Display name" value={name} onChange={e=>setName(e.target.value)}/>}<input className="field" type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/><input className="field" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)}/>{error&&<div className="error">{error}</div>}<button className="primary wide" onClick={submit} disabled={busy}>{busy?'Please wait…':mode==='login'?'Sign in':'Create account'}</button><button className="switch" onClick={()=>setMode(mode==='login'?'register':'login')}>{mode==='login'?'Create a new account':'Already have an account? Sign in'}</button></div></div>}
 export default App
