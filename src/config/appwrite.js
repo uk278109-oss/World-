@@ -1,6 +1,6 @@
 export const APPWRITE_ENDPOINT = 'https://nyc.cloud.appwrite.io/v1'
 export const APPWRITE_PROJECT_ID = '6aa5127e001ea31b0f77'
-export const WORLD_DATABASE_ID = '6aaa2edb002d5a668746'
+export const WORLD_DATABASE_ID = 6aa5175700159ea99cb8
 
 export const USERS_COLLECTION_ID = '6aaa2a34003681b87ac5'
 export const MOMENTS_COLLECTION_ID = '6aa517d80020820efcb0'
