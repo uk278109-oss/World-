@@ -2,7 +2,7 @@ import { Client, Account, Databases, ID, Query, Permission, Role } from 'appwrit
 
 const ENDPOINT = 'https://nyc.cloud.appwrite.io/v1'
 const PROJECT_ID = '6aa5127e001ea31b0f77'
-const DATABASE_ID = '6aaa2edb002d5a668746'
+const DATABASE_ID = '6aa5175700159ea99cb8'
 const COLLECTIONS = {
   users: '6aaa2a34003681b87ac5', moments: '6aa517d80020820efcb0', participants: '6aaa2ced00214fa332b5',
   reactions: '6aaa2ffd00040fbf4bee', follows: '6aaa30da000a4707eba3', reports: '6aaa32a1000082d07a73', comments: '6aaa2edb002d5a668746'
