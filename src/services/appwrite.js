@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID, Query, Permission, Role } from 'appwrite'
+import { Client, Account, Databases, ID, Query, Permission, Role } from 'appwrite'
 
 const ENDPOINT = 'https://nyc.cloud.appwrite.io/v1'
 const PROJECT_ID = '6aa5127e001ea31b0f77'
@@ -10,8 +10,6 @@ const COLLECTIONS = {
 const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID)
 export const account = new Account(client)
 export const databases = new Databases(client)
-export const storage = new Storage(client)
-const MEDIA_BUCKET_ID = '6aaaa1b70013c346455e'
 
 export async function getCurrentUser(){try{return await account.get()}catch{return null}}
 export async function login(email,password){return account.createEmailPasswordSession(email,password)}
@@ -23,16 +21,9 @@ export async function updateUserProfile(userId,data){return databases.updateDocu
 export async function listUsers(search=''){const r=await databases.listDocuments(DATABASE_ID,COLLECTIONS.users,[Query.limit(100)]);const q=search.trim().toLowerCase();return q?r.documents.filter(u=>(u.username+' '+(u.displayName||'')).toLowerCase().includes(q)).slice(0,30):r.documents.slice(0,30)}
 export async function getMoment(momentId){return databases.getDocument(DATABASE_ID,COLLECTIONS.moments,momentId)}
 export async function listNotifications(userId){const mine=await listUserMoments(userId);if(!mine.length)return [];const ids=mine.slice(0,20).map(m=>m.$id);const out=[];for(const [col,type,field] of [[COLLECTIONS.participants,'joined','momentId'],[COLLECTIONS.reactions,'reacted','momentId'],[COLLECTIONS.comments,'commented','momentId']]){for(const id of ids){try{const r=await databases.listDocuments(DATABASE_ID,col,[Query.equal(field,id),Query.orderDesc('createdAt'),Query.limit(20)]);r.documents.forEach(x=>{if(x.userId!==userId)out.push({...x,_type:type})})}catch{}}}return out.sort((a,b)=>new Date(b.createdAt||b.$createdAt)-new Date(a.createdAt||a.$createdAt)).slice(0,30)}
-export async function listMoments(){const r=await databases.listDocuments(DATABASE_ID,COLLECTIONS.moments,[Query.equal('status','active'),Query.orderDesc('$createdAt'),Query.limit(100)]);const now=Date.now();return r.documents.filter(m=>!m.expiresAt||new Date(m.expiresAt).getTime()>now)}
+export async function listMoments(){let r;try{r=await databases.listDocuments(DATABASE_ID,COLLECTIONS.moments,[Query.equal('status','active'),Query.orderDesc('$createdAt'),Query.limit(100)])}catch{r=await databases.listDocuments(DATABASE_ID,COLLECTIONS.moments,[Query.orderDesc('$createdAt'),Query.limit(100)])}const now=Date.now();return r.documents.filter(m=>(m.status||'active')==='active'&&(!m.expiresAt||new Date(m.expiresAt).getTime()>now))}
 export async function listUserMoments(userId){const r=await databases.listDocuments(DATABASE_ID,COLLECTIONS.moments,[Query.equal('ownerId',userId),Query.orderDesc('$createdAt'),Query.limit(50)]);return r.documents}
-export async function uploadMedia(file,userId){
-  const f=await storage.createFile(MEDIA_BUCKET_ID,ID.unique(),file,[Permission.read(Role.any()),Permission.delete(Role.user(userId))])
-  return storage.getFileView(MEDIA_BUCKET_ID,f.$id).toString()
-}
-export async function createMoment(userId,data){
-  const mediaUrl=data.mediaUrl ? `${data.mediaType||'image'}::${data.mediaUrl}` : ''
-  return databases.createDocument(DATABASE_ID,COLLECTIONS.moments,ID.unique(),{ownerId:userId,visibility:data.visibility||'nearby',title:data.title,description:data.description||'',category:data.category||'do',imageUrl:mediaUrl,latitude:data.latitude||'',longitude:data.longitude||'',expiresAt:data.expiresAt||new Date(Date.now()+2*60*60*1000).toISOString(),participantsCount:0,reactionsCount:0,commentsCount:0,status:'active'},[Permission.read(Role.any()),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId))])
-}
+export async function createMoment(userId,data){return databases.createDocument(DATABASE_ID,COLLECTIONS.moments,ID.unique(),{ownerId:userId,visibility:data.visibility||'nearby',title:data.title,description:data.description||'',category:data.category||'do',imageUrl:'',latitude:data.latitude||'',longitude:data.longitude||'',expiresAt:data.expiresAt||new Date(Date.now()+2*60*60*1000).toISOString(),participantsCount:0,reactionsCount:0,commentsCount:0,status:'active'})}
 export async function joinMoment(momentId,userId){const e=await databases.listDocuments(DATABASE_ID,COLLECTIONS.participants,[Query.equal('momentId',momentId),Query.equal('userId',userId),Query.limit(1)]);if(e.documents.length)return e.documents[0];const d=await databases.createDocument(DATABASE_ID,COLLECTIONS.participants,ID.unique(),{momentId,userId,joinedAt:new Date().toISOString(),status:'joined'},[Permission.read(Role.any()),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId))]);const m=await databases.getDocument(DATABASE_ID,COLLECTIONS.moments,momentId);await databases.updateDocument(DATABASE_ID,COLLECTIONS.moments,momentId,{participantsCount:Number(m.participantsCount||0)+1});return d}
 export async function reactToMoment(momentId,userId,type='like'){const e=await databases.listDocuments(DATABASE_ID,COLLECTIONS.reactions,[Query.equal('momentId',momentId),Query.equal('userId',userId),Query.limit(1)]);if(e.documents.length)return e.documents[0];const d=await databases.createDocument(DATABASE_ID,COLLECTIONS.reactions,ID.unique(),{momentId,userId,type,createdAt:new Date().toISOString()},[Permission.read(Role.any()),Permission.delete(Role.user(userId))]);const m=await databases.getDocument(DATABASE_ID,COLLECTIONS.moments,momentId);await databases.updateDocument(DATABASE_ID,COLLECTIONS.moments,momentId,{reactionsCount:Number(m.reactionsCount||0)+1});return d}
 export async function addComment(momentId,userId,text){const d=await databases.createDocument(DATABASE_ID,COLLECTIONS.comments,ID.unique(),{momentId,userId,text,createdAt:new Date().toISOString()},[Permission.read(Role.any()),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId))]);const m=await databases.getDocument(DATABASE_ID,COLLECTIONS.moments,momentId);await databases.updateDocument(DATABASE_ID,COLLECTIONS.moments,momentId,{commentsCount:Number(m.commentsCount||0)+1});return d}
